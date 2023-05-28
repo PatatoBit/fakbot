@@ -1,16 +1,10 @@
 import { IgApiClient } from "instagram-private-api";
 
-import { readFile } from "fs";
-import { promisify } from "util";
-const readFileAsync = promisify(readFile);
-
 import dotenv from "dotenv";
 dotenv.config();
 
 import generateImage from "./generateImage.js";
 import postImage from "./postImage.js";
-
-import generateUserTagFromName from "./generateUsertagFromName.js";
 
 // Initialize Instagram API client
 const ig = new IgApiClient();
