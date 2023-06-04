@@ -100,7 +100,7 @@ async function listenForDMs(): Promise<void> {
     });
 
     console.log("--------------------");
-  }, 1500); // Check for new DMs every 5 seconds
+  }, 15000); // Check for new DMs every 5 seconds
 }
 
 // Main function to authenticate and start listening for DMs
