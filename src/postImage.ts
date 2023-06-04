@@ -8,7 +8,7 @@ export default async function postImage(
 ): Promise<void> {
   const publishResult = await ig.publish.photo({
     file: image,
-    caption: `"${text}\n#fakbot"`,
+    caption: `${text}\n#itsfakbot`,
   });
 
   console.log("Image posted:", publishResult.media.code);

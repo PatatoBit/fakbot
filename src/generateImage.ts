@@ -1,68 +1,36 @@
-// import { createCanvas } from "canvas";
-
-// import drawMultilineText from "./drawMultilineText.js";
-
-// // Generate image from message using the canvas library
-// export default async function generateImage(message: string): Promise<Buffer> {
-//   const width = 2000;
-//   const height = 2000;
-
-//   const canvas = createCanvas(width, height);
-//   const context = canvas.getContext("2d");
-
-//   context.fillStyle = "#edf4ff";
-//   context.fillRect(0, 0, width, height);
-
-//   context.textAlign = "center";
-//   context.textBaseline = "middle";
-//   context.fillStyle = "#002763";
-
-//   const fontSizeUsed = drawMultilineText(context, message, {
-//     rect: {
-//       x: 1000,
-//       y: 0,
-//       width: 2000,
-//       height: 2000,
-//     },
-//     font: "Arial",
-//     verbose: true,
-//     lineHeight: 1,
-//     minFontSize: 100,
-//     maxFontSize: 200,
-//   });
-
-//   return canvas.toBuffer("image/png");
-// }
-
-import { createCanvas, registerFont } from "canvas";
-import fs from "fs";
+import { createCanvas, CanvasRenderingContext2D } from "canvas";
 
 export default function generateImage(message: string): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     const canvasWidth = 800; // Width of the canvas
     const canvasHeight = 800; // Height of the canvas
-    const squareSize = 800; // Size of the square
-    const fontSize = 24;
+    const backgroundColor = "#ccc"; // Color of the background
+    const fontSize = 60;
+    const fontFamily = "Noto Sans Thai"; // Use the registered font family or a system font
 
     const canvas = createCanvas(canvasWidth, canvasHeight);
-    const context = canvas.getContext("2d");
+    const context: CanvasRenderingContext2D = canvas.getContext("2d");
 
-    context.fillStyle = "#ccc"; // Color of the square
-    context.fillRect(
-      (canvasWidth - squareSize) / 2,
-      (canvasHeight - squareSize) / 2,
-      squareSize,
-      squareSize
-    );
+    context.fillStyle = backgroundColor;
+    context.fillRect(0, 0, canvasWidth, canvasHeight);
 
     context.fillStyle = "#000"; // Color of the text
+    context.font = `${fontSize}px ${fontFamily}`;
     context.textAlign = "center"; // Horizontal alignment
-    context.textBaseline = "middle"; // Vertical alignment
 
-    const centerX = canvasWidth / 2;
-    const centerY = canvasHeight / 2;
+    const maxTextWidth = canvasWidth - 40; // Maximum width of the text within the canvas
+    const lines = getWrappedTextLines(context, message, maxTextWidth);
+    const lineHeight = fontSize + 5; // Line height including padding
 
-    context.fillText(message, centerX, centerY);
+    // Calculate the starting vertical position for the text
+    const textHeight = lines.length * lineHeight;
+    const startY = (canvasHeight - textHeight) / 2 + lineHeight / 2;
+
+    // Draw each line of the wrapped text
+    lines.forEach((line, index) => {
+      const y = startY + index * lineHeight;
+      context.fillText(line, canvasWidth / 2, y);
+    });
 
     canvas.toBuffer((error, buffer) => {
       if (error) {
@@ -70,6 +38,31 @@ export default function generateImage(message: string): Promise<Buffer> {
       } else {
         resolve(buffer);
       }
-    });
+    }, "image/jpeg");
   });
+}
+
+function getWrappedTextLines(
+  context: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number
+): string[] {
+  const words = text.split(" ");
+  const lines = [];
+  let currentLine = "";
+
+  for (const word of words) {
+    const { width } = context.measureText(currentLine + " " + word);
+
+    if (width < maxWidth) {
+      currentLine += " " + word;
+    } else {
+      lines.push(currentLine.trim());
+      currentLine = word;
+    }
+  }
+
+  lines.push(currentLine.trim());
+
+  return lines;
 }
