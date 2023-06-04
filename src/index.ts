@@ -1,5 +1,6 @@
 import { IgApiClient } from "instagram-private-api";
 
+import fs from "fs";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -62,14 +63,16 @@ async function listenForDMs(): Promise<void> {
       // Generate image from message
       const image = await generateImage(message);
 
-      console.log(image);
+      fs.writeFile("test.jpg", image, function (err) {
+        console.error(err);
+      });
 
-      // // Post the image
-      try {
-        await postImage(image, message, ig);
-      } catch (error) {
-        console.error("Error posting image:", error);
-      }
+      // // // Post the image
+      // try {
+      //   await postImage(image, message, ig);
+      // } catch (error) {
+      //   console.error("Error posting image:", error);
+      // }
     }
   }
   // }, 5000); // Check for new DMs every 5 seconds
@@ -90,34 +93,3 @@ async function runBot(): Promise<void> {
 
 // Run the bot
 runBot();
-
-// import { IgApiClient } from "instagram-private-api";
-// import { readFile } from "fs/promises";
-
-// async function postImageBuffer() {
-//   // Initialize the Instagram API client
-//   const ig = new IgApiClient();
-
-//   // Set up the client by logging in with your Instagram credentials
-//   ig.state.generateDevice(process.env.INSTAGRAM_USERNAME);
-//   await ig.account.login(
-//     process.env.INSTAGRAM_USERNAME,
-//     process.env.INSTAGRAM_PASSWORD
-//   );
-
-//   // Read the image buffer from a file or any source
-//   const imageBuffer = await readFile("./src/scrib.jpg");
-
-//   // Share the image as a post
-//   await ig.publish.photo({
-//     file: imageBuffer,
-//     caption: "a little scribble",
-//   });
-
-//   console.log("Image posted successfully!");
-// }
-
-// // Call the function to post the image buffer
-// postImageBuffer().catch((error) => {
-//   console.error("An error occurred:", error);
-// });
