@@ -52,13 +52,14 @@ function savePostedDMs(postedDMs: string[]): void {
 // Listen for incoming DMs
 async function listenForDMs(): Promise<void> {
   const inboxFeed = ig.feed.directInbox();
-
-  await inboxFeed.items();
+  const pendingRequests = ig.feed.directPending();
 
   setInterval(async () => {
     const inbox = await inboxFeed.items();
+    const requests = await pendingRequests.items();
 
     // Process each new DM
+
     for (const thread of inbox) {
       const lastItem = thread.items[0];
 
@@ -66,13 +67,10 @@ async function listenForDMs(): Promise<void> {
       if (lastItem.item_type === "text") {
         const message = lastItem.text;
 
-        console.log("New DM:", message);
-
         if (messageFormat(message)) {
           // Check if the DM has already been posted
           const postedDMs = loadPostedDMs();
           if (postedDMs.includes(message)) {
-            console.log("DM already posted:", message);
             continue; // Skip this DM
           }
 
@@ -95,7 +93,14 @@ async function listenForDMs(): Promise<void> {
         }
       }
     }
-  }, 5000); // Check for new DMs every 5 seconds
+
+    requests.forEach(async (request) => {
+      await ig.directThread.approve(request.thread_id);
+      console.log("Approved request from", request.users[0].username);
+    });
+
+    console.log("--------------------");
+  }, 1500); // Check for new DMs every 5 seconds
 }
 
 // Main function to authenticate and start listening for DMs
@@ -115,7 +120,7 @@ async function runBot(): Promise<void> {
 runBot();
 
 function messageFormat(input: string): boolean {
-  const regex = /^“[^”]*”$/; // Regular expression pattern using alternate double quotes
+  const regex = /^("|“)(.*)("|”)$/; // Regular expression pattern
 
   return regex.test(input);
 }
